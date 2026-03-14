@@ -44,6 +44,8 @@ folder2 = F:\Serien          # Zweiter zu überwachender Ordner
 min_video_size_gb = 0.2      # Mindestgröße (hier 200MB)
 check_interval_minutes = 60  # Scan-Intervall
 dry_run = true               # Sicherheitsmodus (true = kein Löschen)
+enable_log_file = true       # Log-Datei schreiben (true/false)
+max_log_size_mb = 1.0        # Max. Größe der Logdatei (einzelne Datei)
 ```
 
 ## 📦 Build Instructions (.exe erstellen)

@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 import pystray
 from pystray import MenuItem as item
 import sys
+from logging.handlers import RotatingFileHandler
 
 # Globale Variablen für die Steuerung
 log_file = "cleaner.log"
@@ -16,15 +17,31 @@ stop_event = threading.Event()
 pause_event = threading.Event() # Wenn gesetzt, wird gewartet
 pause_event.set() # Standardmäßig NICHT pausiert (set() bedeutet "darf laufen")
 
-# Setup Logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    handlers=[
-        logging.FileHandler(log_file, encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
+# Setup Logging initial
+def setup_logging():
+    settings = load_config()
+    enable_log = settings.getboolean('enable_log_file', True) if settings else True
+    max_mb = float(settings.get('max_log_size_mb', 1.0)) if settings else 1.0
+    
+    # Bestehende Handler entfernen
+    logger = logging.getLogger()
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+        
+    handlers = [logging.StreamHandler()]
+    
+    if enable_log:
+        # backupCount=0 sorgt dafür, dass keine .1, .2 etc. Dateien erstellt werden.
+        # Sobald maxBytes erreicht ist, wird die Datei überschrieben/geleert.
+        handlers.append(RotatingFileHandler(log_file, maxBytes=int(max_mb * 1024 * 1024), backupCount=0, encoding='utf-8'))
+        
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        handlers=handlers
+    )
+
+setup_logging()
 
 def create_default_config(path):
     config = configparser.ConfigParser()
@@ -34,7 +51,9 @@ def create_default_config(path):
         'min_video_size_gb': '1.0',
         'check_interval_minutes': '60',
         'video_extensions': '.mkv, .mp4, .avi, .mov, .wmv, .m4v',
-        'dry_run': 'true'
+        'dry_run': 'true',
+        'enable_log_file': 'true',
+        'max_log_size_mb': '1.0'
     }
     with open(path, 'w', encoding='utf-8') as configfile:
         config.write(configfile)
@@ -160,9 +179,8 @@ def on_pause(icon, item):
 
 def on_reload(icon, item):
     logging.info("Konfiguration wird neu geladen...")
-    # Da die Config in jedem Loop neu geladen wird, reicht ein Trigger
-    # Wir könnten hier auch direkt den Loop unterbrechen und neu starten falls gewünscht
-    # Für diese Implementierung reicht es, da load_config() im Loop aufgerufen wird.
+    setup_logging()
+    logging.info("Logging-Einstellungen wurden aktualisiert.")
 
 def setup_tray():
     menu = (
