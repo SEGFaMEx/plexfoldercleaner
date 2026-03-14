@@ -13,6 +13,8 @@
 # Ignore folders and their contents
 build/
 dist/
+bin/
+obj/
 __pycache__/
 test_env/
 .directory
