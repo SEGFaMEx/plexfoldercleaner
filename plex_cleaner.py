@@ -18,30 +18,6 @@ pause_event = threading.Event() # Wenn gesetzt, wird gewartet
 pause_event.set() # Standardmäßig NICHT pausiert (set() bedeutet "darf laufen")
 
 # Setup Logging initial
-def setup_logging():
-    settings = load_config()
-    enable_log = settings.getboolean('enable_log_file', True) if settings else True
-    max_mb = float(settings.get('max_log_size_mb', 1.0)) if settings else 1.0
-    
-    # Bestehende Handler entfernen
-    logger = logging.getLogger()
-    for handler in logger.handlers[:]:
-        logger.removeHandler(handler)
-        
-    handlers = [logging.StreamHandler()]
-    
-    if enable_log:
-        # backupCount=0 sorgt dafür, dass keine .1, .2 etc. Dateien erstellt werden.
-        # Sobald maxBytes erreicht ist, wird die Datei überschrieben/geleert.
-        handlers.append(RotatingFileHandler(log_file, maxBytes=int(max_mb * 1024 * 1024), backupCount=0, encoding='utf-8'))
-        
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=handlers
-    )
-
-setup_logging()
 
 def create_default_config(path):
     config = configparser.ConfigParser()
@@ -77,6 +53,29 @@ def load_config():
     except Exception as e:
         logging.error(f"Fehler beim Laden der Config: {e}")
         return None
+
+def setup_logging():
+    settings = load_config()
+    enable_log = settings.getboolean('enable_log_file', True) if settings else True
+    max_mb = float(settings.get('max_log_size_mb', 1.0)) if settings else 1.0
+    
+    # Bestehende Handler entfernen
+    logger = logging.getLogger()
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+        
+    handlers = [logging.StreamHandler()]
+    
+    if enable_log:
+        # backupCount=0 sorgt dafür, dass keine .1, .2 etc. Dateien erstellt werden.
+        # Sobald maxBytes erreicht ist, wird die Datei überschrieben/geleert.
+        handlers.append(RotatingFileHandler(log_file, maxBytes=int(max_mb * 1024 * 1024), backupCount=0, encoding='utf-8'))
+        
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        handlers=handlers
+    )
 
 def has_large_video(folder_path, min_size_bytes, extensions):
     for root, dirs, files in os.walk(folder_path):
@@ -192,6 +191,7 @@ def setup_tray():
     icon.run()
 
 if __name__ == "__main__":
+    setup_logging()
     logging.info("Plex Folder Cleaner Tray-App startet.")
     
     # Cleaner in separatem Thread starten
