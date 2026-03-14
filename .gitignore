@@ -1,0 +1,26 @@
+# Ignore everything
+*
+
+# Whitelist files to keep
+!build_exe.bat
+!config.ini
+!plex_cleaner.py
+!PlexCleaner.spec
+!requirements.txt
+!README.md
+!.gitignore
+
+# Ignore folders and their contents
+build/
+dist/
+__pycache__/
+test_env/
+.directory
+.gemini/
+.agent/
+.agents/
+.cortex/
+.antigravity/
+
+# Metadata inside whitelisted folders (if any)
+!*/
